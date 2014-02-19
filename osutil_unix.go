@@ -1,3 +1,5 @@
+// +build darwin dragonfly freebsd linux netbsd openbsd
+
 /* Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -13,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// +build darwin dragonfly freebsd linux netbsd openbsd
-
 package osutil
 
 import (
@@ -23,14 +22,14 @@ import (
 )
 
 func addWritable(file *os.File) error {
-	return handleWritable(func(v os.FileMode) uint32 { return v | 0222 })
+	return handleWritable(file, func(v os.FileMode) os.FileMode { return v | 0222 })
 }
 
 func removeWritable(file *os.File) error {
-	return handleWritable(func(v os.FileMode) uint32 { return v ^ 0222 })
+	return handleWritable(file, func(v os.FileMode) os.FileMode { return v ^ 0222 })
 }
 
-func handleWritable(file *os.File, fn func(perm os.FileMode) uint32) error {
+func handleWritable(file *os.File, fn func(perm os.FileMode) os.FileMode) error {
 	if info, err := os.Lstat(file.Name()); err != nil {
 		return err
 	} else {
