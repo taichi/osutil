@@ -21,18 +21,6 @@ import (
 	"os"
 )
 
-func addWritable(file *os.File) error {
-	return handleWritable(file, func(v os.FileMode) os.FileMode { return v | 0222 })
-}
-
-func removeWritable(file *os.File) error {
-	return handleWritable(file, func(v os.FileMode) os.FileMode { return v ^ 0222 })
-}
-
-func handleWritable(file *os.File, fn func(perm os.FileMode) os.FileMode) error {
-	if info, err := os.Lstat(file.Name()); err != nil {
-		return err
-	} else {
-		return file.Chmod(fn(info.Mode()))
-	}
+func forceRemoveAll(root string) error {
+	return os.RemoveAll(root)
 }

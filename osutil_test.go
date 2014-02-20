@@ -56,48 +56,17 @@ var _ = Describe("Osutil", func() {
 			Expect(IsExist(p)).To(BeFalse())
 		})
 	})
-	Context("HandleWritable", func() {
-		var tmpfile *os.File
-		BeforeEach(func() {
-			var err error
-			tmpfile, err = ioutil.TempFile("", "www")
-			Expect(err).To(BeNil())
-			_, err = tmpfile.WriteString("aaaa")
-			Expect(err).To(BeNil())
-		})
-		AfterEach(func() {
-			Expect(tmpfile.Close()).To(BeNil())
-			Expect(os.Remove(tmpfile.Name())).To(BeNil())
-		})
-		It("works normally", func() {
-			ToBe := func(perm string) {
-				if info, err := os.Lstat(tmpfile.Name()); err != nil {
-					Fail(err.Error())
-				} else {
-					Expect(info.Mode().String()).To(Equal(perm))
-				}
-			}
-			Expect(RemoveWritable(tmpfile)).To(BeNil())
-			ToBe("-r--r--r--")
-			Expect(AddWritable(tmpfile)).To(BeNil())
-			ToBe("-rw-rw-rw-")
-		})
-	})
 	Context("ForceRemoveAll", func() {
 		It("should work normally", func() {
 			dir, err := ioutil.TempDir("", "zzz")
 			Expect(err).To(BeNil())
 
 			txt := dir + "/moge.txt"
-			we := ioutil.WriteFile(txt, []byte("aaaa"), 644)
+			we := ioutil.WriteFile(txt, []byte("aaaa"), 0644)
 			Expect(we).To(BeNil())
 
-			file, err2 := os.Open(txt)
-			Expect(err2).To(BeNil())
-			Expect(RemoveWritable(file)).To(BeNil())
-			Expect(file.Close()).To(BeNil())
-			Expect(os.RemoveAll(dir)).NotTo(BeNil())
 			Expect(ForceRemoveAll(dir)).To(BeNil())
+			Expect(IsNotExist(dir)).To(BeTrue())
 		})
 	})
 })

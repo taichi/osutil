@@ -17,13 +17,33 @@ package osutil
 
 import (
 	"os"
+	"path/filepath"
 	"syscall"
 )
 
-// see. http://msdn.microsoft.com/en-us/library/windows/desktop/aa365535(v=vs.85).aspx
-func addWritable(file *os.File) error {
-	return syscall.Chmod(file.Name(), syscall.S_IWRITE)
+func forceRemoveAll(root string) error {
+	// cf.
+	// DeleteFile function
+	//    http://msdn.microsoft.com/en-us/library/windows/desktop/aa363915(v=vs.85).aspx
+	// SHFileOperation function
+	//    http://msdn.microsoft.com/en-us/library/bb762164(v=vs.85).aspx
+	// IFileOperation interface
+	//    http://msdn.microsoft.com/en-us/library/bb775771(v=vs.85).aspx
+	if err := filepath.Walk(root, addWritables); err != nil {
+		return err
+	}
+	return os.RemoveAll(root)
 }
-func removeWritable(file *os.File) error {
-	return syscall.Chmod(file.Name(), 01)
+
+func addWritables(path string, info os.FileInfo, err error) error {
+	if info.Mode()&0200 == 0 {
+		if f, err := os.Open(path); err != nil {
+			return err
+		} else {
+			defer f.Close()
+			// see. http://msdn.microsoft.com/en-us/library/windows/desktop/aa365535(v=vs.85).aspx
+			return syscall.Chmod(f.Name(), syscall.S_IWRITE)
+		}
+	}
+	return nil
 }
